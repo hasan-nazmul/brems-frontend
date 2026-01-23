@@ -1,0 +1,104 @@
+:root {
+  --br-green: #006747; /* Official BR Green */
+  --br-dark: #004d35;
+  --br-red: #F41313;   /* Official BR Red */
+  --br-gold: #f5a623;
+  --bg-light: #f4f6f9;
+}
+
+body {
+  background-color: var(--bg-light);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Sidebar Styling */
+.sidebar {
+  background: var(--br-green);
+  color: white;
+  min-height: 100vh;
+}
+
+.sidebar .nav-link {
+  color: rgba(255, 255, 255, 0.8) !important;
+  font-weight: 500;
+  margin-bottom: 5px;
+  border-radius: 5px;
+  transition: all 0.3s;
+}
+
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+  background: var(--br-dark);
+  color: #fff !important;
+  border-left: 4px solid var(--br-red);
+}
+
+/* Buttons */
+.btn-primary {
+  background-color: var(--br-green);
+  border-color: var(--br-green);
+}
+.btn-primary:hover {
+  background-color: var(--br-dark);
+}
+
+.btn-danger {
+  background-color: var(--br-red);
+}
+
+/* Timeline (LinkedIn Style) */
+.timeline {
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid #e9ecef;
+}
+
+.timeline-item {
+  position: relative;
+  margin-bottom: 25px;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -26px; /* Adjust based on border width */
+  top: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--br-green);
+  border: 2px solid #fff;
+}
+
+.timeline-date {
+  font-size: 0.85rem;
+  color: #6c757d;
+  font-weight: 600;
+}
+
+.timeline-content {
+  background: white;
+  padding: 15px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+/* Hierarchy Tree */
+.tree ul {
+  padding-left: 20px;
+  list-style: none;
+  border-left: 1px dashed #ccc;
+}
+.tree li {
+  position: relative;
+  padding-left: 10px;
+  margin-bottom: 10px;
+}
+.tree li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 15px;
+  width: 10px;
+  height: 1px;
+  background: #ccc;
+}
