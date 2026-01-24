@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { FaChartPie, FaBuilding, FaUserTie, FaInbox, FaSignOutAlt, FaTrain, FaUsers, FaUserCircle, FaEdit } from 'react-icons/fa';
 
 const Sidebar = () => {
-    const [role, setRole] = useState('verified_user');
+    const [role, setRole] = useState('');
 
     useEffect(() => {
         const user = JSON.parse(localStorage.getItem('user'));
@@ -17,34 +17,46 @@ const Sidebar = () => {
         return `${baseClasses} ${isActive ? activeClasses : inactiveClasses}`;
     };
 
+    // Helper to check if user has admin privileges (Super OR Office)
+    const isAdmin = role === 'super_admin' || role === 'office_admin';
+
     return (
         <aside className="w-64 bg-slate-900 h-screen fixed left-0 top-0 flex flex-col z-50 shadow-2xl">
             <div className="h-16 flex items-center px-6 bg-slate-950 border-b border-slate-800">
                 <FaTrain className="text-railway-green text-2xl mr-3" />
                 <div>
                     <h1 className="text-white font-bold text-lg tracking-wide leading-tight">RAILWAY ERP</h1>
-                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">{role === 'verified_user' ? 'Employee Portal' : 'Admin Portal'}</p>
+                    <p className="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">
+                        {isAdmin ? 'Admin Portal' : 'Employee Portal'}
+                    </p>
                 </div>
             </div>
 
             <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
-                {/* --- ADMIN LINKS --- */}
-                {role !== 'verified_user' && (
+                
+                {/* --- ADMIN MENU (Super & Office) --- */}
+                {isAdmin && (
                     <>
                         <div className="px-6 mb-2 text-[11px] font-bold text-slate-600 uppercase tracking-wider">Overview</div>
                         <NavLink to="/dashboard" className={getLinkClasses}><FaChartPie className="mr-3 text-lg" /> Dashboard</NavLink>
                         <NavLink to="/employees" className={getLinkClasses}><FaUsers className="mr-3 text-lg" /> Employee Directory</NavLink>
 
                         <div className="px-6 mb-2 mt-6 text-[11px] font-bold text-slate-600 uppercase tracking-wider">Organization</div>
+                        
+                        {/* Only Super Admin can edit Offices/Designations structure, but Office Admin can view */}
                         <NavLink to="/offices" className={getLinkClasses}><FaBuilding className="mr-3 text-lg" /> Offices & Stations</NavLink>
-                        <NavLink to="/designations" className={getLinkClasses}><FaUserTie className="mr-3 text-lg" /> HR & Designations</NavLink>
+                        
+                        {/* Ideally only Super Admin manages designations, but keeping visible for now */}
+                        {role === 'super_admin' && (
+                            <NavLink to="/designations" className={getLinkClasses}><FaUserTie className="mr-3 text-lg" /> HR & Designations</NavLink>
+                        )}
 
                         <div className="px-6 mb-2 mt-6 text-[11px] font-bold text-slate-600 uppercase tracking-wider">Requests</div>
                         <NavLink to="/inbox" className={getLinkClasses}><FaInbox className="mr-3 text-lg" /> Admin Inbox</NavLink>
                     </>
                 )}
 
-                {/* --- EMPLOYEE LINKS --- */}
+                {/* --- EMPLOYEE MENU --- */}
                 {role === 'verified_user' && (
                     <>
                         <div className="px-6 mb-2 text-[11px] font-bold text-slate-600 uppercase tracking-wider">My Profile</div>
