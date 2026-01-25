@@ -1,16 +1,22 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+module.exports = {
   content: [
-    "./index.html",
-    "./src/**/*.{js,ts,jsx,tsx}",
+    "./src/**/*.{js,jsx,ts,tsx}",
   ],
   theme: {
     extend: {
       colors: {
         railway: {
-          green: '#006A4E', // Bangladesh Railway Green
-          red: '#F42A41',   // Railway Red
+          50: '#f0fdf4',
+          100: '#dcfce7',
+          600: '#006A4E', // BR Primary Green
+          700: '#047857', // Hover state
+          800: '#065f46', // Darker accents
         },
+        danger: '#F42A41', // Signal Red
+      },
+      fontFamily: {
+        sans: ['Inter', 'Noto Sans Bengali', 'sans-serif'],
       },
     },
   },

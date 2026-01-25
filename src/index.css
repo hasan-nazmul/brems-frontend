@@ -1,41 +1,88 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+/* 1. Import Inter (English) and Noto Sans Bengali (Bangla) */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+Bengali:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-gray-50 text-gray-800 font-sans antialiased;
+/* 2. Base Layer: Global Resets & Typography */
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased;
+    /* This ensures Bangla text looks native and professional */
+    font-family: 'Inter', 'Noto Sans Bengali', sans-serif; 
+  }
+
+  /* Headings default to the darker Railway Green shade for authority */
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-[#065f46] font-bold tracking-tight;
+  }
 }
 
-/* Custom Scrollbar for Sidebar */
-::-webkit-scrollbar {
-  width: 6px;
-}
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
-}
-/* src/index.css - Add this at the bottom */
-input, select, textarea {
-    background-color: #ffffff !important; 
-    border: 1px solid #d1d5db !important; /* Gray-300 */
-    color: #111827 !important; /* Gray-900 */
-    padding: 0.6rem 0.75rem !important;
-    border-radius: 0.5rem !important;
+/* 3. Component Layer: Reusable UI Elements */
+@layer components {
+  
+  /* GLOBAL FORM STYLES
+     Targeting elements directly to avoid using !important 
+     and to ensure consistency for non-technical users.
+  */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="date"],
+  select,
+  textarea {
+    @apply w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-base text-gray-900 shadow-sm transition-all duration-200 ease-in-out;
+    
+    /* Placeholder styling for better readability */
+    @apply placeholder:text-gray-400;
+  }
+
+  /* Focus States: The Railway Green Ring */
+  input:focus, 
+  select:focus, 
+  textarea:focus {
+    @apply border-[#006A4E] outline-none ring-4 ring-[#006A4E]/10;
+  }
+
+  /* Disabled States: Clear visual cue */
+  input:disabled, 
+  select:disabled, 
+  textarea:disabled {
+    @apply cursor-not-allowed bg-gray-100 text-gray-500 border-gray-200;
+  }
+
+  /* RAILWAY CARD 
+     Use this class for your employee details/forms 
+  */
+  .railway-card {
+    @apply bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden;
+  }
 }
 
-input:focus, select:focus, textarea:focus {
-    outline: none !important;
-    border-color: #006A4E !important; /* Railway Green */
-    box-shadow: 0 0 0 2px rgba(0, 106, 78, 0.2) !important;
-}
+/* 4. Utilities: Custom Scrollbar (Railway Themed) */
+@layer utilities {
+  /* Width */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
 
-/* Fix for disabled inputs */
-input:disabled {
-    background-color: #f3f4f6 !important;
-    cursor: not-allowed;
+  /* Track */
+  ::-webkit-scrollbar-track {
+    background: #f1f5f9; 
+  }
+
+  /* Handle */
+  ::-webkit-scrollbar-thumb {
+    background: #cbd5e1; 
+    border-radius: 4px;
+    transition: background 0.3s;
+  }
+
+  /* Handle on hover - darken it slightly */
+  ::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8; 
+  }
 }

@@ -1,14 +1,34 @@
 import React from 'react';
 
 const colors = {
-    success: 'bg-green-100 text-green-800 border-green-200',
-    warning: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-    danger: 'bg-red-100 text-red-800 border-red-200',
-    gray: 'bg-gray-100 text-gray-800 border-gray-200',
+    // Active / Verified / Completed -> Railway Green
+    success: 'bg-[#006A4E]/10 text-[#006A4E] border-[#006A4E]/20',
+    
+    // Deleted / Urgent / Error -> Signal Red
+    danger: 'bg-[#F42A41]/10 text-[#F42A41] border-[#F42A41]/20',
+    
+    // Pending / Draft -> Track Gold
+    warning: 'bg-yellow-50 text-yellow-700 border-yellow-200',
+    
+    // Inactive / Offline -> Neutral Gray
+    gray: 'bg-gray-100 text-gray-600 border-gray-200',
+    
+    // New / Info -> Standard Blue
+    info: 'bg-blue-50 text-blue-700 border-blue-200',
 };
 
-export const Badge = ({ type = 'gray', children }) => (
-    <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold border ${colors[type] || colors.gray}`}>
+export const Badge = ({ type = 'gray', children, className = '' }) => (
+    <span className={`
+        inline-flex items-center justify-center
+        px-2.5 py-1
+        rounded-full 
+        text-[10px] font-bold uppercase tracking-wider 
+        border 
+        shadow-sm
+        whitespace-nowrap
+        ${colors[type] || colors.gray}
+        ${className}
+    `}>
         {children}
     </span>
 );
