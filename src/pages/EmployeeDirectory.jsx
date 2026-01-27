@@ -4,7 +4,7 @@ import api from '../utils/api';
 import { Card } from '../components/ui/Card';
 import { Modal } from '../components/ui/Modal';
 import { Badge } from '../components/ui/Badge';
-import { FaEye, FaSearch, FaFilter, FaUserPlus, FaIdCard, FaBuilding, FaLayerGroup } from 'react-icons/fa';
+import { FaEye, FaSearch, FaFilter, FaUserPlus, FaIdCard, FaBuilding, FaLayerGroup, FaFileCsv, FaFilePdf } from 'react-icons/fa';
 
 const EmployeeDirectory = () => {
     // Data States
@@ -80,7 +80,7 @@ const EmployeeDirectory = () => {
         }
     };
 
-    // 3. Filter Logic
+    // 3. Filter Logic (Frontend View)
     useEffect(() => {
         let result = employees;
 
@@ -99,28 +99,46 @@ const EmployeeDirectory = () => {
         }
 
         setFilteredData(result);
-        setCurrentPage(1); // Reset to Page 1 when filtering
+        setCurrentPage(1); 
     }, [search, officeFilter, employees]);
 
-    const handleExport = (type) => {
-        const token = localStorage.getItem('ACCESS_TOKEN'); // Get token
-        // We must use window.open or fetch with blob because axios handles file downloads differently
-        // Easiest way for simple file download is direct link with token query param or using fetch
-        
-        fetch(`http://127.0.0.1:8000/api/export/${type}`, {
-            headers: { Authorization: `Bearer ${token}` }
-        })
-        .then(response => response.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
+    // 4. SMART EXPORT FUNCTION (Fixed using Axios/api instance)
+    const handleExport = async (type) => {
+        try {
+            // 1. Build Query Parameters
+            const params = new URLSearchParams();
+            if (search) params.append('search', search);
+            if (officeFilter) params.append('office_id', officeFilter);
+
+            // 2. Determine Endpoint
+            const endpoint = type === 'csv' ? '/employees/export-csv' : '/employees/export-pdf';
+            
+            // 3. Request File using your 'api' utility
+            // Note: We set responseType to 'blob' so Axios handles binary data correctly
+            const response = await api.get(`${endpoint}?${params.toString()}`, {
+                responseType: 'blob', 
+            });
+
+            // 4. Create Download Link
+            const url = window.URL.createObjectURL(new Blob([response.data]));
             const a = document.createElement('a');
             a.href = url;
-            a.download = type === 'csv' ? 'employees.csv' : 'employees.pdf';
+            a.download = type === 'csv' 
+                ? `employees_export_${Date.now()}.csv` 
+                : `employees_export_${Date.now()}.pdf`;
             document.body.appendChild(a);
             a.click();
             a.remove();
-        })
-        .catch(err => alert("Export failed."));
+            window.URL.revokeObjectURL(url); // Clean up memory
+
+        } catch (error) {
+            console.error("Export Error:", error);
+            if (error.response?.status === 401) {
+                alert("Session expired. Please login again.");
+            } else {
+                alert("Export failed. Please check the console for details.");
+            }
+        }
     };
 
     // Pagination Calculations
@@ -145,15 +163,15 @@ const EmployeeDirectory = () => {
                     {/* EXPORT BUTTONS */}
                     <button 
                         onClick={() => handleExport('csv')}
-                        className="bg-white border border-gray-300 text-gray-600 px-4 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-50 flex items-center gap-2"
+                        className="bg-white border border-gray-300 text-green-700 px-4 py-2.5 rounded-lg font-bold text-sm hover:bg-green-50 flex items-center gap-2 shadow-sm transition-all"
                     >
-                        📄 CSV
+                        <FaFileCsv /> Export CSV
                     </button>
                     <button 
                         onClick={() => handleExport('pdf')}
-                        className="bg-white border border-gray-300 text-gray-600 px-4 py-2.5 rounded-lg font-bold text-sm hover:bg-gray-50 flex items-center gap-2"
+                        className="bg-white border border-gray-300 text-red-700 px-4 py-2.5 rounded-lg font-bold text-sm hover:bg-red-50 flex items-center gap-2 shadow-sm transition-all"
                     >
-                        🖨️ PDF
+                        <FaFilePdf /> Export PDF
                     </button>
                 </div>
                 <button 
@@ -194,13 +212,13 @@ const EmployeeDirectory = () => {
                             </select>
                         </div>
 
-                        {/* Pagination Size - FIXED LOGIC HERE */}
+                        {/* Pagination Size */}
                         <select 
                             className="px-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#006A4E]/20 focus:border-[#006A4E] text-sm bg-white shadow-sm cursor-pointer" 
                             value={itemsPerPage} 
                             onChange={e => {
                                 setItemsPerPage(parseInt(e.target.value));
-                                setCurrentPage(1); // <--- CRITICAL FIX: RESET TO PAGE 1
+                                setCurrentPage(1); 
                             }}
                         >
                             <option value="10">10 Rows</option>
