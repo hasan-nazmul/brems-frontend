@@ -66,8 +66,13 @@ export const AuthProvider = ({ children }) => {
 
         toast.success(`Welcome back, ${userData.name}!`);
 
-        // Redirect to intended page or dashboard
-        const from = location.state?.from?.pathname || '/dashboard';
+        // Redirect to intended page or role-appropriate default (admins → dashboard, employees → my-profile)
+        const defaultPath = [ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN].includes(
+          userData.role
+        )
+          ? '/dashboard'
+          : '/my-profile';
+        const from = location.state?.from?.pathname || defaultPath;
         navigate(from, { replace: true });
 
         return { success: true };

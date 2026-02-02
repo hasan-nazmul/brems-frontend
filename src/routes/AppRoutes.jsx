@@ -8,6 +8,7 @@ import { MainLayout, AuthLayout } from '@/components/layout';
 import ProtectedRoute from './ProtectedRoute';
 import RoleRoute from './RoleRoute';
 import GuestRoute from './GuestRoute';
+import DefaultRedirect from './DefaultRedirect';
 
 // Auth pages
 import Login from '@/pages/auth/Login';
@@ -238,8 +239,8 @@ const AppRoutes = () => {
         <Route path='/settings' element={<Settings />} />
         <Route path='/settings/password' element={<ChangePassword />} />
 
-        {/* Default redirect */}
-        <Route path='/' element={<Navigate to='/dashboard' replace />} />
+        {/* Default redirect: admins → dashboard, verified users → my-profile */}
+        <Route path='/' element={<DefaultRedirect />} />
       </Route>
 
       {/* 404 */}

@@ -98,13 +98,20 @@ const DesignationList = () => {
       return;
     }
 
+    // Treat numeric-only grade as Grade-{number}
+    let grade = formData.grade.trim();
+    if (/^\d+$/.test(grade)) {
+      grade = `Grade-${grade}`;
+    }
+    const payload = { ...formData, grade };
+
     try {
       setSaving(true);
       if (editModal.designation) {
-        await designationService.update(editModal.designation.id, formData);
+        await designationService.update(editModal.designation.id, payload);
         toast.success('Designation updated successfully');
       } else {
-        await designationService.create(formData);
+        await designationService.create(payload);
         toast.success('Designation created successfully');
       }
       setEditModal({ open: false, designation: null });

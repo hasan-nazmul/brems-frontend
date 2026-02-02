@@ -22,7 +22,7 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { STORAGE_KEYS } from '@/utils/constants';
 import Logo from './Logo';
 
-const Sidebar = () => {
+const Sidebar = ({ onNavigateClick }) => {
   const { user, logout, isSuperAdmin, isOfficeAdmin, isVerifiedUser } =
     useAuth();
   const permissions = usePermissions();
@@ -155,6 +155,7 @@ const Sidebar = () => {
       <NavLink
         to={item.href}
         end={isChild}
+        onClick={onNavigateClick}
         className={({ isActive: linkActive }) =>
           clsx(
             'flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
@@ -242,16 +243,18 @@ const Sidebar = () => {
       {/* Logo */}
       <div className='flex items-center justify-between h-16 px-4 border-b border-gray-200'>
         <Logo collapsed={collapsed} />
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className='p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
-        >
-          {collapsed ? (
-            <ChevronRightIcon className='w-5 h-5' />
-          ) : (
-            <ChevronLeftIcon className='w-5 h-5' />
-          )}
-        </button>
+        {!onNavigateClick && (
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className='p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors'
+          >
+            {collapsed ? (
+              <ChevronRightIcon className='w-5 h-5' />
+            ) : (
+              <ChevronLeftIcon className='w-5 h-5' />
+            )}
+          </button>
+        )}
       </div>
 
       {/* Navigation */}
@@ -280,7 +283,10 @@ const Sidebar = () => {
 
         {/* Logout Button */}
         <button
-          onClick={logout}
+          onClick={() => {
+            onNavigateClick?.();
+            logout();
+          }}
           className={clsx(
             'w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors',
             'text-red-600 hover:bg-red-50'

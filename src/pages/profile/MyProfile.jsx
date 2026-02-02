@@ -12,6 +12,7 @@ import {
   Alert,
   LoadingScreen,
 } from '@/components/common';
+import DocumentsTab from '@/pages/employees/tabs/DocumentsTab';
 import { ROLE_LABELS, ROLE_COLORS } from '@/utils/constants';
 import { getFullName, formatDate, getErrorMessage } from '@/utils/helpers';
 
@@ -138,20 +139,30 @@ const MyProfile = () => {
           </Card>
 
           {employee && (
-            <Card className='p-6'>
-              <h3 className='text-sm font-medium text-gray-500 mb-4'>
-                Employee Profile
-              </h3>
-              <p className='text-gray-600 mb-4'>
-                Your account is linked to an employee record. You can view and
-                request updates to your profile.
-              </p>
-              <Link to={`/employees/${employee.id}`}>
-                <Button variant='outline' size='sm'>
-                  View Employee Profile
-                </Button>
-              </Link>
-            </Card>
+            <>
+              <Card className='p-6'>
+                <h3 className='text-sm font-medium text-gray-500 mb-4'>
+                  Employee Profile
+                </h3>
+                <p className='text-gray-600 mb-4'>
+                  Your account is linked to an employee record. You can view and
+                  request updates to your profile.
+                </p>
+                <Link to={`/employees/${employee.id}`}>
+                  <Button variant='outline' size='sm'>
+                    View Employee Profile
+                  </Button>
+                </Link>
+              </Card>
+
+              <Card className='p-6'>
+                <DocumentsTab
+                  employee={employee}
+                  onUpdate={fetchEmployee}
+                  canManage={true}
+                />
+              </Card>
+            </>
           )}
 
           {!user.employee_id && (

@@ -139,16 +139,16 @@ const EmployeeDetail = () => {
   };
 
   if (loading) {
-    return <LoadingScreen message="Loading employee details..." />;
+    return <LoadingScreen message='Loading employee details...' />;
   }
 
   if (error) {
     return (
-      <div className="p-8">
-        <Alert variant="error" title="Error loading employee">
+      <div className='p-8'>
+        <Alert variant='error' title='Error loading employee'>
           {error}
         </Alert>
-        <Button className="mt-4" onClick={() => navigate('/employees')}>
+        <Button className='mt-4' onClick={() => navigate('/employees')}>
           Back to Employees
         </Button>
       </div>
@@ -157,11 +157,11 @@ const EmployeeDetail = () => {
 
   if (!employee) {
     return (
-      <div className="p-8">
-        <Alert variant="error" title="Employee not found">
+      <div className='p-8'>
+        <Alert variant='error' title='Employee not found'>
           The requested employee could not be found.
         </Alert>
-        <Button className="mt-4" onClick={() => navigate('/employees')}>
+        <Button className='mt-4' onClick={() => navigate('/employees')}>
           Back to Employees
         </Button>
       </div>
@@ -172,30 +172,74 @@ const EmployeeDetail = () => {
   const isOwnProfile = user?.employee_id === employee.id;
 
   const tabs = [
-    { id: 'personal', label: 'Personal Info', content: <PersonalInfoTab employee={employee} /> },
-    { id: 'family', label: 'Family', content: <FamilyTab employee={employee} /> },
-    { id: 'address', label: 'Address', content: <AddressTab employee={employee} /> },
-    { id: 'academics', label: 'Academics', content: <AcademicsTab employee={employee} /> },
-    { id: 'employment', label: 'Employment', content: <EmploymentTab employee={employee} /> },
-    { id: 'documents', label: 'Documents', content: <DocumentsTab employee={employee} onUpdate={fetchEmployee} canManage={canManage} /> },
-    { id: 'timeline', label: 'Timeline', content: <TimelineTab employee={employee} /> },
-    ...(canManage ? [{ id: 'account', label: 'Account', content: <AccountTab employee={employee} onUpdate={fetchEmployee} /> }] : []),
+    {
+      id: 'personal',
+      label: 'Personal Info',
+      content: <PersonalInfoTab employee={employee} />,
+    },
+    {
+      id: 'family',
+      label: 'Family',
+      content: <FamilyTab employee={employee} />,
+    },
+    {
+      id: 'address',
+      label: 'Address',
+      content: <AddressTab employee={employee} />,
+    },
+    {
+      id: 'academics',
+      label: 'Academics',
+      content: <AcademicsTab employee={employee} />,
+    },
+    {
+      id: 'employment',
+      label: 'Employment',
+      content: <EmploymentTab employee={employee} />,
+    },
+    {
+      id: 'documents',
+      label: 'Documents',
+      content: (
+        <DocumentsTab
+          employee={employee}
+          onUpdate={fetchEmployee}
+          canManage={canManage || isOwnProfile}
+        />
+      ),
+    },
+    {
+      id: 'timeline',
+      label: 'Timeline',
+      content: <TimelineTab employee={employee} />,
+    },
+    ...(canManage
+      ? [
+          {
+            id: 'account',
+            label: 'Account',
+            content: (
+              <AccountTab employee={employee} onUpdate={fetchEmployee} />
+            ),
+          },
+        ]
+      : []),
   ];
 
   return (
     <div>
       <PageHeader
-        title="Employee Details"
+        title='Employee Details'
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
           { label: 'Employees', href: '/employees' },
           { label: `${employee.first_name} ${employee.last_name}` },
         ]}
         actions={
-          <div className="flex items-center gap-2">
+          <div className='flex items-center gap-2'>
             <Button
-              variant="outline"
-              size="sm"
+              variant='outline'
+              size='sm'
               icon={ArrowDownTrayIcon}
               onClick={handleDownloadPdf}
             >
@@ -203,7 +247,7 @@ const EmployeeDetail = () => {
             </Button>
             {canManage && (
               <Link to={`/employees/${id}/edit`}>
-                <Button variant="outline" size="sm" icon={PencilSquareIcon}>
+                <Button variant='outline' size='sm' icon={PencilSquareIcon}>
                   Edit
                 </Button>
               </Link>
@@ -213,84 +257,100 @@ const EmployeeDetail = () => {
       />
 
       {/* Employee Header Card */}
-      <Card className="mb-6">
-        <div className="p-6">
-          <div className="flex flex-col md:flex-row gap-6">
+      <Card className='mb-6'>
+        <div className='p-6'>
+          <div className='flex flex-col md:flex-row gap-6'>
             {/* Avatar & Basic Info */}
-            <div className="flex items-start gap-4">
+            <div className='flex items-start gap-4'>
               <Avatar
-                src={employee.profile_picture ? `/storage/${employee.profile_picture}` : null}
+                src={
+                  employee.profile_picture
+                    ? `/storage/${employee.profile_picture}`
+                    : null
+                }
                 name={`${employee.first_name} ${employee.last_name}`}
-                size="2xl"
+                size='2xl'
               />
               <div>
-                <h2 className="text-2xl font-bold text-gray-900">
+                <h2 className='text-2xl font-bold text-gray-900'>
                   {employee.first_name} {employee.last_name}
                 </h2>
                 {employee.name_bn && (
-                  <p className="text-lg text-gray-600 font-bangla">{employee.name_bn}</p>
+                  <p className='text-lg text-gray-600 font-bangla'>
+                    {employee.name_bn}
+                  </p>
                 )}
-                <p className="text-gray-500 mt-1">
+                <p className='text-gray-500 mt-1'>
                   {employee.designation?.title || 'No designation'}
-                  {employee.designation?.grade && ` • Grade ${employee.designation.grade}`}
+                  {employee.designation?.grade &&
+                    ` • Grade ${employee.designation.grade}`}
                 </p>
-                <p className="text-gray-500">
+                <p className='text-gray-500'>
                   {employee.office?.name || 'No office assigned'}
                 </p>
-                <div className="flex items-center gap-2 mt-3">
+                <div className='flex items-center gap-2 mt-3'>
                   <Badge
                     variant={
-                      employee.status === EMPLOYEE_STATUS.ACTIVE ? 'success' :
-                      employee.status === EMPLOYEE_STATUS.RELEASED ? 'warning' : 'default'
+                      employee.status === EMPLOYEE_STATUS.ACTIVE
+                        ? 'success'
+                        : employee.status === EMPLOYEE_STATUS.RELEASED
+                        ? 'warning'
+                        : 'default'
                     }
                   >
                     {STATUS_LABELS[employee.status] || employee.status}
                   </Badge>
                   {employee.is_verified ? (
-                    <Badge variant="success" dot>Verified</Badge>
+                    <Badge variant='success' dot>
+                      Verified
+                    </Badge>
                   ) : (
-                    <Badge variant="warning" dot>Not Verified</Badge>
+                    <Badge variant='warning' dot>
+                      Not Verified
+                    </Badge>
                   )}
                 </div>
               </div>
             </div>
 
             {/* Quick Stats */}
-            <div className="md:ml-auto grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">
+            <div className='md:ml-auto grid grid-cols-2 md:grid-cols-4 gap-4'>
+              <div className='text-center p-4 bg-gray-50 rounded-lg'>
+                <p className='text-2xl font-bold text-gray-900'>
                   {formatCurrency(employee.designation?.basic_salary, false)}
                 </p>
-                <p className="text-xs text-gray-500">Basic Salary</p>
+                <p className='text-xs text-gray-500'>Basic Salary</p>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">
+              <div className='text-center p-4 bg-gray-50 rounded-lg'>
+                <p className='text-2xl font-bold text-gray-900'>
                   {employee.transfers?.length || 0}
                 </p>
-                <p className="text-xs text-gray-500">Transfers</p>
+                <p className='text-xs text-gray-500'>Transfers</p>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">
+              <div className='text-center p-4 bg-gray-50 rounded-lg'>
+                <p className='text-2xl font-bold text-gray-900'>
                   {employee.promotions?.length || 0}
                 </p>
-                <p className="text-xs text-gray-500">Promotions</p>
+                <p className='text-xs text-gray-500'>Promotions</p>
               </div>
-              <div className="text-center p-4 bg-gray-50 rounded-lg">
-                <p className="text-2xl font-bold text-gray-900">
-                  {employee.joining_date ? formatDate(employee.joining_date) : '-'}
+              <div className='text-center p-4 bg-gray-50 rounded-lg'>
+                <p className='text-2xl font-bold text-gray-900'>
+                  {employee.joining_date
+                    ? formatDate(employee.joining_date)
+                    : '-'}
                 </p>
-                <p className="text-xs text-gray-500">Joining Date</p>
+                <p className='text-xs text-gray-500'>Joining Date</p>
               </div>
             </div>
           </div>
 
           {/* Action Buttons */}
           {canManage && employee.status === EMPLOYEE_STATUS.ACTIVE && (
-            <div className="mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-3">
+            <div className='mt-6 pt-6 border-t border-gray-200 flex flex-wrap gap-3'>
               {!employee.is_verified && (
                 <Button
-                  variant="success"
-                  size="sm"
+                  variant='success'
+                  size='sm'
                   icon={CheckBadgeIcon}
                   onClick={() => setVerifyModal(true)}
                 >
@@ -298,8 +358,8 @@ const EmployeeDetail = () => {
                 </Button>
               )}
               <Button
-                variant="outline"
-                size="sm"
+                variant='outline'
+                size='sm'
                 icon={ArrowRightOnRectangleIcon}
                 onClick={() => setReleaseModal(true)}
               >
@@ -308,24 +368,24 @@ const EmployeeDetail = () => {
               {isSuperAdmin() && (
                 <>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant='outline'
+                    size='sm'
                     icon={ArrowTrendingUpIcon}
                     onClick={() => setPromotionModal(true)}
                   >
                     Promote
                   </Button>
                   <Button
-                    variant="outline"
-                    size="sm"
+                    variant='outline'
+                    size='sm'
                     icon={UserMinusIcon}
                     onClick={() => setRetireModal(true)}
                   >
                     Retire
                   </Button>
                   <Button
-                    variant="outline-danger"
-                    size="sm"
+                    variant='outline-danger'
+                    size='sm'
                     icon={TrashIcon}
                     onClick={() => setDeleteModal(true)}
                   >
@@ -338,9 +398,10 @@ const EmployeeDetail = () => {
 
           {/* Released Employee - Transfer Button */}
           {canManage && employee.status === EMPLOYEE_STATUS.RELEASED && (
-            <div className="mt-6 pt-6 border-t border-gray-200">
-              <Alert variant="warning" className="mb-4">
-                This employee has been released and is awaiting transfer to a new office.
+            <div className='mt-6 pt-6 border-t border-gray-200'>
+              <Alert variant='warning' className='mb-4'>
+                This employee has been released and is awaiting transfer to a
+                new office.
               </Alert>
               <Button
                 icon={ArrowsRightLeftIcon}
@@ -359,7 +420,7 @@ const EmployeeDetail = () => {
           tabs={tabs}
           defaultTab={activeTab}
           onChange={setActiveTab}
-          variant="underline"
+          variant='underline'
         />
       </Card>
 
@@ -368,10 +429,10 @@ const EmployeeDetail = () => {
         isOpen={verifyModal}
         onClose={() => setVerifyModal(false)}
         onConfirm={handleVerify}
-        title="Verify Employee"
+        title='Verify Employee'
         message={`Are you sure you want to verify ${employee.first_name} ${employee.last_name}? This confirms their profile information is accurate.`}
-        confirmText="Verify"
-        variant="success"
+        confirmText='Verify'
+        variant='success'
         loading={verifying}
       />
 
@@ -409,10 +470,10 @@ const EmployeeDetail = () => {
         isOpen={retireModal}
         onClose={() => setRetireModal(false)}
         onConfirm={handleRetire}
-        title="Retire Employee"
+        title='Retire Employee'
         message={`Are you sure you want to retire ${employee.first_name} ${employee.last_name}? This action will deactivate their user account if one exists.`}
-        confirmText="Retire"
-        variant="warning"
+        confirmText='Retire'
+        variant='warning'
         loading={retiring}
       />
 
@@ -420,10 +481,10 @@ const EmployeeDetail = () => {
         isOpen={deleteModal}
         onClose={() => setDeleteModal(false)}
         onConfirm={handleDelete}
-        title="Delete Employee"
+        title='Delete Employee'
         message={`Are you sure you want to delete ${employee.first_name} ${employee.last_name}? This action cannot be undone.`}
-        confirmText="Delete"
-        variant="danger"
+        confirmText='Delete'
+        variant='danger'
         loading={deleting}
       />
     </div>

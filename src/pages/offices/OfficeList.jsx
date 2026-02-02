@@ -30,7 +30,14 @@ import { getErrorMessage } from '@/utils/helpers';
 import toast from 'react-hot-toast';
 
 // Office Tree Item Component
-const OfficeTreeItem = ({ office, level = 0, onEdit, onDelete, canEdit, canDelete }) => {
+const OfficeTreeItem = ({
+  office,
+  level = 0,
+  onEdit,
+  onDelete,
+  canEdit,
+  canDelete,
+}) => {
   const [expanded, setExpanded] = useState(level < 2);
   const hasChildren = office.children && office.children.length > 0;
 
@@ -50,36 +57,46 @@ const OfficeTreeItem = ({ office, level = 0, onEdit, onDelete, canEdit, canDelet
           }`}
         >
           {expanded ? (
-            <ChevronDownIcon className="w-4 h-4 text-gray-500" />
+            <ChevronDownIcon className='w-4 h-4 text-gray-500' />
           ) : (
-            <ChevronRightIcon className="w-4 h-4 text-gray-500" />
+            <ChevronRightIcon className='w-4 h-4 text-gray-500' />
           )}
         </button>
 
         {/* Office Icon */}
-        <div className={`p-2 rounded-lg ${office.has_admin ? 'bg-primary-100' : 'bg-gray-100'}`}>
-          <BuildingOfficeIcon className={`w-5 h-5 ${office.has_admin ? 'text-primary-600' : 'text-gray-500'}`} />
+        <div
+          className={`p-2 rounded-lg ${
+            office.has_admin ? 'bg-primary-100' : 'bg-gray-100'
+          }`}
+        >
+          <BuildingOfficeIcon
+            className={`w-5 h-5 ${
+              office.has_admin ? 'text-primary-600' : 'text-gray-500'
+            }`}
+          />
         </div>
 
         {/* Office Info */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <Link 
+        <div className='flex-1 min-w-0'>
+          <div className='flex items-center gap-2'>
+            <Link
               to={`/offices/${office.id}`}
-              className="font-medium text-gray-900 hover:text-primary-600"
+              className='font-medium text-gray-900 hover:text-primary-600'
             >
               {office.name}
             </Link>
-            <span className="text-sm text-gray-500">({office.code})</span>
+            <span className='text-sm text-gray-500'>({office.code})</span>
           </div>
-          <p className="text-sm text-gray-500">{office.location}</p>
+          <p className='text-sm text-gray-500'>{office.location}</p>
         </div>
 
         {/* Stats */}
-        <div className="flex items-center gap-4">
-          <div className="text-center">
-            <p className="text-lg font-semibold text-gray-900">{office.employee_count || 0}</p>
-            <p className="text-xs text-gray-500">Employees</p>
+        <div className='flex items-center gap-4'>
+          <div className='text-center'>
+            <p className='text-lg font-semibold text-gray-900'>
+              {office.employee_count || 0}
+            </p>
+            <p className='text-xs text-gray-500'>Employees</p>
           </div>
           <Badge variant={office.has_admin ? 'success' : 'warning'}>
             {office.has_admin ? 'Has Admin' : 'No Admin'}
@@ -87,14 +104,14 @@ const OfficeTreeItem = ({ office, level = 0, onEdit, onDelete, canEdit, canDelet
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-1">
+        <div className='flex items-center gap-1'>
           <Link to={`/offices/${office.id}`}>
-            <Button variant="ghost" size="sm" iconOnly icon={EyeIcon} />
+            <Button variant='ghost' size='sm' iconOnly icon={EyeIcon} />
           </Link>
           {canEdit && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               iconOnly
               icon={PencilSquareIcon}
               onClick={() => onEdit(office)}
@@ -102,12 +119,12 @@ const OfficeTreeItem = ({ office, level = 0, onEdit, onDelete, canEdit, canDelet
           )}
           {canDelete && (
             <Button
-              variant="ghost"
-              size="sm"
+              variant='ghost'
+              size='sm'
               iconOnly
               icon={TrashIcon}
               onClick={() => onDelete(office)}
-              className="text-red-500 hover:text-red-700"
+              className='text-red-500 hover:text-red-700'
             />
           )}
         </div>
@@ -144,6 +161,15 @@ const OfficeList = () => {
   const [error, setError] = useState(null);
   const [viewMode, setViewMode] = useState('tree'); // 'tree' or 'list'
   const [search, setSearch] = useState('');
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.innerWidth < 1024
+  );
+
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < 1024);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   // Modal states
   const [editModal, setEditModal] = useState({ open: false, office: null });
@@ -259,16 +285,17 @@ const OfficeList = () => {
   };
 
   const filteredTree = search
-    ? officeTree.filter((office) =>
-        office.name.toLowerCase().includes(search.toLowerCase()) ||
-        office.code.toLowerCase().includes(search.toLowerCase())
+    ? officeTree.filter(
+        (office) =>
+          office.name.toLowerCase().includes(search.toLowerCase()) ||
+          office.code.toLowerCase().includes(search.toLowerCase())
       )
     : officeTree;
 
   return (
     <div>
       <PageHeader
-        title="Offices"
+        title='Offices'
         subtitle={`${offices.length} offices in the organization`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/dashboard' },
@@ -285,8 +312,8 @@ const OfficeList = () => {
 
       {error && (
         <Alert
-          variant="error"
-          className="mb-6"
+          variant='error'
+          className='mb-6'
           dismissible
           onDismiss={() => setError(null)}
         >
@@ -296,49 +323,59 @@ const OfficeList = () => {
 
       <Card>
         {/* Toolbar */}
-        <div className="p-4 border-b border-gray-200 flex items-center justify-between gap-4">
+        <div className='p-4 border-b border-gray-200 flex items-center justify-between gap-4'>
           <SearchInput
             value={search}
             onChange={setSearch}
-            placeholder="Search offices..."
-            className="w-64"
+            placeholder='Search offices...'
+            className='w-64'
           />
-          <div className="flex items-center gap-2">
-            <Button
-              variant={viewMode === 'tree' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('tree')}
-            >
-              Tree View
-            </Button>
-            <Button
-              variant={viewMode === 'list' ? 'primary' : 'outline'}
-              size="sm"
-              onClick={() => setViewMode('list')}
-            >
-              List View
-            </Button>
-          </div>
+          {!isMobile && (
+            <div className='flex items-center gap-2'>
+              <Button
+                variant={viewMode === 'tree' ? 'primary' : 'outline'}
+                size='sm'
+                onClick={() => setViewMode('tree')}
+              >
+                Tree View
+              </Button>
+              <Button
+                variant={viewMode === 'list' ? 'primary' : 'outline'}
+                size='sm'
+                onClick={() => setViewMode('list')}
+              >
+                List View
+              </Button>
+            </div>
+          )}
         </div>
 
         {/* Content */}
         {loading ? (
-          <div className="p-8 text-center">
-            <div className="animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
-            <p className="mt-4 text-gray-500">Loading offices...</p>
+          <div className='p-8 text-center'>
+            <div className='animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto' />
+            <p className='mt-4 text-gray-500'>Loading offices...</p>
           </div>
         ) : filteredTree.length === 0 ? (
-          <div className="p-8">
+          <div className='p-8'>
             <EmptyState
               icon={BuildingOfficeIcon}
-              title="No offices found"
-              description={search ? 'Try a different search term' : 'Get started by creating your first office'}
-              actionLabel={permissions.canCreateOffice ? 'Add Office' : undefined}
-              onAction={permissions.canCreateOffice ? () => handleEdit(null) : undefined}
+              title='No offices found'
+              description={
+                search
+                  ? 'Try a different search term'
+                  : 'Get started by creating your first office'
+              }
+              actionLabel={
+                permissions.canCreateOffice ? 'Add Office' : undefined
+              }
+              onAction={
+                permissions.canCreateOffice ? () => handleEdit(null) : undefined
+              }
             />
           </div>
-        ) : viewMode === 'tree' ? (
-          <div className="divide-y divide-gray-200">
+        ) : !isMobile && viewMode === 'tree' ? (
+          <div className='divide-y divide-gray-200'>
             {filteredTree.map((office) => (
               <OfficeTreeItem
                 key={office.id}
@@ -351,52 +388,75 @@ const OfficeList = () => {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+          <div className='overflow-x-auto'>
+            <table className='min-w-full divide-y divide-gray-200'>
+              <thead className='bg-gray-50'>
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Office</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Code</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Location</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Parent</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Employees</th>
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Admin</th>
-                  <th className="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase">Actions</th>
+                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                    Office
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                    Code
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                    Location
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                    Parent
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                    Employees
+                  </th>
+                  <th className='px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase'>
+                    Admin
+                  </th>
+                  <th className='px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase'>
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className='bg-white divide-y divide-gray-200'>
                 {offices.map((office) => (
-                  <tr key={office.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">
-                      <Link 
+                  <tr key={office.id} className='hover:bg-gray-50'>
+                    <td className='px-6 py-4'>
+                      <Link
                         to={`/offices/${office.id}`}
-                        className="font-medium text-gray-900 hover:text-primary-600"
+                        className='font-medium text-gray-900 hover:text-primary-600'
                       >
                         {office.name}
                       </Link>
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{office.code}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">{office.location}</td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className='px-6 py-4 text-sm text-gray-500'>
+                      {office.code}
+                    </td>
+                    <td className='px-6 py-4 text-sm text-gray-500'>
+                      {office.location}
+                    </td>
+                    <td className='px-6 py-4 text-sm text-gray-500'>
                       {office.parent?.name || '-'}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900">
+                    <td className='px-6 py-4 text-sm text-gray-900'>
                       {office.employees_count || 0}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className='px-6 py-4'>
                       <Badge variant={office.has_admin ? 'success' : 'warning'}>
                         {office.has_admin ? 'Yes' : 'No'}
                       </Badge>
                     </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1">
+                    <td className='px-6 py-4 text-right'>
+                      <div className='flex items-center justify-end gap-1'>
                         <Link to={`/offices/${office.id}`}>
-                          <Button variant="ghost" size="sm" iconOnly icon={EyeIcon} />
+                          <Button
+                            variant='ghost'
+                            size='sm'
+                            iconOnly
+                            icon={EyeIcon}
+                          />
                         </Link>
                         {permissions.canEditOffice && (
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             iconOnly
                             icon={PencilSquareIcon}
                             onClick={() => handleEdit(office)}
@@ -404,12 +464,12 @@ const OfficeList = () => {
                         )}
                         {permissions.canDeleteOffice && (
                           <Button
-                            variant="ghost"
-                            size="sm"
+                            variant='ghost'
+                            size='sm'
                             iconOnly
                             icon={TrashIcon}
                             onClick={() => handleDelete(office)}
-                            className="text-red-500 hover:text-red-700"
+                            className='text-red-500 hover:text-red-700'
                           />
                         )}
                       </div>
@@ -427,52 +487,55 @@ const OfficeList = () => {
         isOpen={editModal.open}
         onClose={() => setEditModal({ open: false, office: null })}
         title={editModal.office ? 'Edit Office' : 'Create Office'}
-        size="md"
+        size='md'
       >
-        <form onSubmit={handleSave} className="space-y-4">
+        <form onSubmit={handleSave} className='space-y-4'>
           <Input
-            label="Office Name"
+            label='Office Name'
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
             error={formErrors.name}
             required
-            placeholder="e.g., Dhaka Division"
+            placeholder='e.g., Dhaka Division'
           />
           <Input
-            label="Office Code"
+            label='Office Code'
             value={formData.code}
             onChange={(e) => setFormData({ ...formData, code: e.target.value })}
             error={formErrors.code}
             required
-            placeholder="e.g., DHK-DIV"
+            placeholder='e.g., DHK-DIV'
           />
           <Input
-            label="Location"
+            label='Location'
             value={formData.location}
-            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+            onChange={(e) =>
+              setFormData({ ...formData, location: e.target.value })
+            }
             error={formErrors.location}
             required
-            placeholder="e.g., Dhaka, Bangladesh"
+            placeholder='e.g., Dhaka, Bangladesh'
           />
           <Select
-            label="Parent Office"
+            label='Parent Office'
             value={formData.parent_id}
-            onChange={(e) => setFormData({ ...formData, parent_id: e.target.value })}
-            options={offices
-              .filter(o => o.id !== editModal.office?.id)
-              .map(o => ({ value: o.id, label: `${o.name} (${o.code})` }))
+            onChange={(e) =>
+              setFormData({ ...formData, parent_id: e.target.value })
             }
-            placeholder="Select parent office (optional)"
+            options={offices
+              .filter((o) => o.id !== editModal.office?.id)
+              .map((o) => ({ value: o.id, label: `${o.name} (${o.code})` }))}
+            placeholder='Select parent office (optional)'
           />
-          <div className="flex justify-end gap-3 pt-4">
+          <div className='flex justify-end gap-3 pt-4'>
             <Button
-              variant="outline"
+              variant='outline'
               onClick={() => setEditModal({ open: false, office: null })}
               disabled={saving}
             >
               Cancel
             </Button>
-            <Button type="submit" loading={saving}>
+            <Button type='submit' loading={saving}>
               {editModal.office ? 'Update' : 'Create'}
             </Button>
           </div>
@@ -484,10 +547,10 @@ const OfficeList = () => {
         isOpen={deleteModal.open}
         onClose={() => setDeleteModal({ open: false, office: null })}
         onConfirm={handleConfirmDelete}
-        title="Delete Office"
+        title='Delete Office'
         message={`Are you sure you want to delete "${deleteModal.office?.name}"? This action cannot be undone.`}
-        confirmText="Delete"
-        variant="danger"
+        confirmText='Delete'
+        variant='danger'
         loading={deleting}
       />
     </div>

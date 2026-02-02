@@ -17,7 +17,7 @@ import {
   Switch,
 } from '@/components/common';
 import { ROLE_LABELS, ROLES } from '@/utils/constants';
-import { getErrorMessage } from '@/utils/helpers';
+import { getErrorMessage, formatDateTime } from '@/utils/helpers';
 import toast from 'react-hot-toast';
 
 const AccountTab = ({ employee, onUpdate }) => {
@@ -41,7 +41,7 @@ const AccountTab = ({ employee, onUpdate }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validate
     const newErrors = {};
     if (!formData.email) {
@@ -49,7 +49,7 @@ const AccountTab = ({ employee, onUpdate }) => {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Invalid email format';
     }
-    
+
     if (!existingUser && !formData.password) {
       newErrors.password = 'Password is required for new accounts';
     } else if (formData.password && formData.password.length < 6) {
@@ -63,7 +63,7 @@ const AccountTab = ({ employee, onUpdate }) => {
 
     try {
       setLoading(true);
-      
+
       const payload = {
         email: formData.email,
         role: formData.role,
@@ -75,14 +75,18 @@ const AccountTab = ({ employee, onUpdate }) => {
       }
 
       await employeeService.manageAccess(employee.id, payload);
-      
-      toast.success(existingUser ? 'Account updated successfully' : 'Account created successfully');
+
+      toast.success(
+        existingUser
+          ? 'Account updated successfully'
+          : 'Account created successfully'
+      );
       setFormData((prev) => ({ ...prev, password: '' }));
       onUpdate?.();
     } catch (err) {
       const errorMessage = getErrorMessage(err);
       toast.error(errorMessage);
-      
+
       // Handle validation errors from API
       if (err.response?.data?.errors) {
         setErrors(err.response.data.errors);
@@ -95,73 +99,86 @@ const AccountTab = ({ employee, onUpdate }) => {
   const roleOptions = [
     { value: ROLES.VERIFIED_USER, label: 'Verified User' },
     { value: ROLES.OFFICE_ADMIN, label: 'Office Admin' },
-    ...(isSuperAdmin() ? [{ value: ROLES.SUPER_ADMIN, label: 'Super Admin' }] : []),
+    ...(isSuperAdmin()
+      ? [{ value: ROLES.SUPER_ADMIN, label: 'Super Admin' }]
+      : []),
   ];
 
   return (
-    <div className="p-6">
-      <h3 className="text-lg font-semibold text-gray-900 mb-6">User Account</h3>
+    <div className='p-6'>
+      <h3 className='text-lg font-semibold text-gray-900 mb-6'>User Account</h3>
 
       {/* Account Status */}
       {existingUser ? (
-        <div className="mb-6 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary-100 rounded-lg">
-                <UserIcon className="w-5 h-5 text-primary-600" />
+        <div className='mb-6 p-4 bg-gray-50 rounded-lg'>
+          <div className='flex items-center justify-between'>
+            <div className='flex items-center gap-3'>
+              <div className='p-2 bg-primary-100 rounded-lg'>
+                <UserIcon className='w-5 h-5 text-primary-600' />
               </div>
               <div>
-                <p className="font-medium text-gray-900">Account Active</p>
-                <p className="text-sm text-gray-500">{existingUser.email}</p>
+                <p className='font-medium text-gray-900'>Account Active</p>
+                <p className='text-sm text-gray-500'>{existingUser.email}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className='flex items-center gap-2'>
               <Badge variant={existingUser.is_active ? 'success' : 'danger'}>
                 {existingUser.is_active ? 'Active' : 'Disabled'}
               </Badge>
-              <Badge variant="info">
+              <Badge variant='info'>
                 {ROLE_LABELS[existingUser.role] || existingUser.role}
               </Badge>
             </div>
           </div>
         </div>
       ) : (
-        <Alert variant="info" className="mb-6">
-          <p>This employee does not have a user account yet. Create one to allow them to log in to the system.</p>
+        <Alert variant='info' className='mb-6'>
+          <p>
+            This employee does not have a user account yet. Create one to allow
+            them to log in to the system.
+          </p>
         </Alert>
       )}
 
       {/* Account Form */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <form onSubmit={handleSubmit} className='space-y-6'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
           <Input
-            label="Email Address"
-            type="email"
-            name="email"
+            label='Email Address'
+            type='email'
+            name='email'
             value={formData.email}
             onChange={handleChange}
             error={errors.email}
             leftIcon={EnvelopeIcon}
             required
-            placeholder="employee@railway.gov.bd"
+            placeholder='employee@railway.gov.bd'
           />
 
           <Input
-            label={existingUser ? 'New Password (leave blank to keep current)' : 'Password'}
-            type="password"
-            name="password"
+            label={
+              existingUser
+                ? 'New Password (leave blank to keep current)'
+                : 'Password'
+            }
+            type='password'
+            name='password'
             value={formData.password}
             onChange={handleChange}
             error={errors.password}
             leftIcon={KeyIcon}
             required={!existingUser}
             placeholder={existingUser ? '••••••••' : 'Enter password'}
-            hint={existingUser ? 'Only fill if you want to change the password' : 'Minimum 6 characters'}
+            hint={
+              existingUser
+                ? 'Only fill if you want to change the password'
+                : 'Minimum 6 characters'
+            }
           />
 
           <Select
-            label="Role"
-            name="role"
+            label='Role'
+            name='role'
             value={formData.role}
             onChange={handleChange}
             options={roleOptions}
@@ -170,29 +187,36 @@ const AccountTab = ({ employee, onUpdate }) => {
           />
 
           {existingUser && (
-            <div className="flex items-center pt-7">
+            <div className='flex items-center pt-7'>
               <Switch
                 checked={formData.is_active}
-                onChange={(checked) => setFormData((prev) => ({ ...prev, is_active: checked }))}
-                label="Account Active"
-                description={formData.is_active ? 'User can log in' : 'User cannot log in'}
+                onChange={(checked) =>
+                  setFormData((prev) => ({ ...prev, is_active: checked }))
+                }
+                label='Account Active'
+                description={
+                  formData.is_active ? 'User can log in' : 'User cannot log in'
+                }
               />
             </div>
           )}
         </div>
 
-        <div className="flex items-center gap-4 pt-4 border-t border-gray-200">
+        <div className='flex items-center gap-4 pt-4 border-t border-gray-200'>
           <Button
-            type="submit"
+            type='submit'
             loading={loading}
             icon={existingUser ? ShieldCheckIcon : UserIcon}
           >
             {existingUser ? 'Update Account' : 'Create Account'}
           </Button>
-          
+
           {existingUser && (
-            <p className="text-sm text-gray-500">
-              Last login: {existingUser.last_login_at || 'Never'}
+            <p className='text-sm text-gray-500'>
+              Last login:{' '}
+              {existingUser.last_login_at
+                ? formatDateTime(existingUser.last_login_at)
+                : 'Never'}
             </p>
           )}
         </div>
@@ -200,12 +224,13 @@ const AccountTab = ({ employee, onUpdate }) => {
 
       {/* Password Reset Info */}
       {existingUser && (
-        <div className="mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-          <h4 className="font-medium text-yellow-800 mb-2">Password Reset</h4>
-          <p className="text-sm text-yellow-700">
-            If the user has forgotten their password, you can set a new one using the form above.
-            The user will need to use the new password to log in. Consider using a temporary password
-            and asking them to change it after logging in.
+        <div className='mt-8 p-4 bg-yellow-50 rounded-lg border border-yellow-200'>
+          <h4 className='font-medium text-yellow-800 mb-2'>Password Reset</h4>
+          <p className='text-sm text-yellow-700'>
+            If the user has forgotten their password, you can set a new one
+            using the form above. The user will need to use the new password to
+            log in. Consider using a temporary password and asking them to
+            change it after logging in.
           </p>
         </div>
       )}
