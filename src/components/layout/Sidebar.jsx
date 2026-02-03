@@ -22,23 +22,34 @@ import { usePermissions } from '@/hooks/usePermissions';
 import { STORAGE_KEYS } from '@/utils/constants';
 import Logo from './Logo';
 
-const Sidebar = ({ onNavigateClick }) => {
+const Sidebar = ({
+  onNavigateClick,
+  collapsed: controlledCollapsed,
+  onCollapsedChange,
+}) => {
   const { user, logout, isSuperAdmin, isOfficeAdmin, isVerifiedUser } =
     useAuth();
   const permissions = usePermissions();
   const location = useLocation();
   const isMobile = !!onNavigateClick;
-  const [collapsed, setCollapsed] = useState(() => {
+  const [internalCollapsed, setInternalCollapsed] = useState(() => {
     const stored = localStorage.getItem(STORAGE_KEYS.SIDEBAR_COLLAPSED);
     return stored === 'true';
   });
+  const isControlled =
+    controlledCollapsed !== undefined &&
+    typeof onCollapsedChange === 'function';
+  const collapsed = isControlled ? controlledCollapsed : internalCollapsed;
+  const setCollapsed = isControlled
+    ? (next) => onCollapsedChange(next)
+    : setInternalCollapsed;
   const effectiveCollapsed = isMobile ? false : collapsed;
 
   useEffect(() => {
-    if (!isMobile) {
-      localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, collapsed);
+    if (!isMobile && !isControlled) {
+      localStorage.setItem(STORAGE_KEYS.SIDEBAR_COLLAPSED, internalCollapsed);
     }
-  }, [isMobile, collapsed]);
+  }, [isMobile, isControlled, internalCollapsed]);
 
   // Navigation items configuration
   const navigationItems = [
