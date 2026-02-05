@@ -78,13 +78,13 @@ const Sidebar = ({
       name: 'Offices',
       href: '/offices',
       icon: BuildingOfficeIcon,
-      show: true,
+      show: !isVerifiedUser(),
     },
     {
       name: 'Designations',
       href: '/designations',
       icon: BriefcaseIcon,
-      show: true,
+      show: !isVerifiedUser(),
     },
     {
       name: 'Users',

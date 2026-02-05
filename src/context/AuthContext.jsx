@@ -66,14 +66,17 @@ export const AuthProvider = ({ children }) => {
 
         toast.success(`Welcome back, ${userData.name}!`);
 
-        // Redirect to intended page or role-appropriate default (admins → dashboard, employees → my-profile)
+        // Verified users always go to my-profile; admins go to intended page or dashboard
+        const isVerified = userData.role === ROLES.VERIFIED_USER;
         const defaultPath = [ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN].includes(
           userData.role
         )
           ? '/dashboard'
           : '/my-profile';
-        const from = location.state?.from?.pathname || defaultPath;
-        navigate(from, { replace: true });
+        const target = isVerified
+          ? '/my-profile'
+          : location.state?.from?.pathname || defaultPath;
+        navigate(target, { replace: true });
 
         return { success: true };
       } catch (error) {

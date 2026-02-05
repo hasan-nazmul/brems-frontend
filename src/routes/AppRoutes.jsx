@@ -21,6 +21,7 @@ import EmployeeList from '@/pages/employees/EmployeeList';
 import EmployeeDetail from '@/pages/employees/EmployeeDetail';
 import EmployeeCreate from '@/pages/employees/EmployeeCreate';
 import EmployeeEditRoute from '@/routes/EmployeeEditRoute';
+import EmployeeDetailRoute from '@/routes/EmployeeDetailRoute';
 import ReleasedEmployees from '@/pages/employees/ReleasedEmployees';
 
 // Offices
@@ -83,11 +84,14 @@ const AppRoutes = () => {
           </ProtectedRoute>
         }
       >
-        {/* Dashboard - Admin only */}
+        {/* Dashboard - Admin only; verified users redirected to my-profile */}
         <Route
           path='/dashboard'
           element={
-            <RoleRoute allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}>
+            <RoleRoute
+              allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]}
+              redirectVerifiedTo='/my-profile'
+            >
               <Dashboard />
             </RoleRoute>
           }
@@ -119,7 +123,7 @@ const AppRoutes = () => {
               </RoleRoute>
             }
           />
-          <Route path=':id' element={<EmployeeDetail />} />
+          <Route path=':id' element={<EmployeeDetailRoute />} />
           <Route path=':id/edit' element={<EmployeeEditRoute />} />
         </Route>
 

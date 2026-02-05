@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
-import { Alert } from '@/components/common';
+import { Alert, LoadingScreen } from '@/components/common';
 import { ROLES } from '@/utils/constants';
 import EmployeeEdit from '@/pages/employees/EmployeeEdit';
 
@@ -11,12 +11,16 @@ import EmployeeEdit from '@/pages/employees/EmployeeEdit';
  */
 const EmployeeEditRoute = () => {
   const { id } = useParams();
-  const { user, hasRole } = useAuth();
+  const { user, hasRole, loading, initialized } = useAuth();
   const isAdmin = hasRole([ROLES.SUPER_ADMIN, ROLES.OFFICE_ADMIN]);
   const isOwnProfile =
     user?.role === ROLES.VERIFIED_USER &&
     user?.employee_id != null &&
     String(user.employee_id) === String(id);
+
+  if (!initialized || loading) {
+    return <LoadingScreen message='Loading...' />;
+  }
 
   if (isAdmin || isOwnProfile) {
     return <EmployeeEdit />;

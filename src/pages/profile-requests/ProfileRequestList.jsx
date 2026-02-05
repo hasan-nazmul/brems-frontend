@@ -3,10 +3,10 @@ import { Link, useSearchParams } from 'react-router-dom';
 import {
   DocumentCheckIcon,
   EyeIcon,
-  FunnelIcon,
   ArrowPathIcon,
 } from '@heroicons/react/24/outline';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useDebounce } from '@/hooks/useDebounce';
 import { profileRequestService } from '@/services';
 import {
   PageHeader,
@@ -15,7 +15,6 @@ import {
   Badge,
   Table,
   SearchInput,
-  Select,
   Alert,
   EmptyState,
   Pagination,
@@ -29,9 +28,8 @@ const ProfileRequestList = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [statusFilter, setStatusFilter] = useState(
-    searchParams.get('status') || ''
-  );
+  const [search, setSearch] = useState(searchParams.get('search') || '');
+  const debouncedSearch = useDebounce(search, 300);
   const [page, setPage] = useState(
     parseInt(searchParams.get('page') || '1', 10)
   );
@@ -42,14 +40,14 @@ const ProfileRequestList = () => {
 
   useEffect(() => {
     fetchRequests();
-  }, [page, statusFilter]);
+  }, [page, debouncedSearch]);
 
   const fetchRequests = async () => {
     try {
       setLoading(true);
       setError(null);
       const params = { page, per_page: DEFAULT_PAGE_SIZE };
-      if (statusFilter) params.status = statusFilter;
+      if (debouncedSearch) params.search = debouncedSearch;
       const data = await profileRequestService.getAll(params);
       const list = data.data ?? data;
       setRequests(Array.isArray(list) ? list : []);
@@ -73,6 +71,12 @@ const ProfileRequestList = () => {
       else next.set(k, String(v));
     });
     setSearchParams(next);
+  };
+
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    setPage(1);
+    updateParams({ search: value || undefined, page: '1' });
   };
 
   const columns = [
@@ -150,20 +154,13 @@ const ProfileRequestList = () => {
       />
 
       <Card>
-        <div className='p-4 border-b border-gray-200 flex flex-wrap gap-4'>
-          <Select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-              updateParams({ status: e.target.value, page: '1' });
-            }}
-            className='w-40'
-          >
-            <option value=''>All statuses</option>
-            <option value='pending'>Pending</option>
-            <option value='processed'>Processed</option>
-          </Select>
+        <div className='p-4 border-b border-gray-200 flex flex-wrap gap-4 items-center'>
+          <SearchInput
+            value={search}
+            onChange={handleSearchChange}
+            placeholder='Search by ID, employee name, type, or details...'
+            className='max-w-xs'
+          />
           <Button
             variant='outline'
             size='sm'

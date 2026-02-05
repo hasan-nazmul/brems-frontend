@@ -27,7 +27,12 @@ import {
   Modal,
 } from '@/components/common';
 import { STATUS_LABELS, EMPLOYEE_STATUS, ROLE_LABELS } from '@/utils/constants';
-import { formatDate, formatCurrency, getErrorMessage } from '@/utils/helpers';
+import {
+  formatDate,
+  formatCurrency,
+  getErrorMessage,
+  getStorageUrl,
+} from '@/utils/helpers';
 import toast from 'react-hot-toast';
 
 // Tab Components
@@ -45,15 +50,22 @@ import TransferModal from './modals/TransferModal';
 import PromotionModal from './modals/PromotionModal';
 import ReleaseModal from './modals/ReleaseModal';
 
-const EmployeeDetail = () => {
-  const { id } = useParams();
+const EmployeeDetail = ({
+  initialEmployee = null,
+  isMyProfilePage = false,
+  onRefresh = null,
+}) => {
+  const { id: paramsId } = useParams();
   const navigate = useNavigate();
   const { user, isSuperAdmin, canManageEmployee } = useAuth();
   const permissions = usePermissions();
 
-  // State
-  const [employee, setEmployee] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const id =
+    initialEmployee?.id != null ? String(initialEmployee.id) : paramsId;
+
+  // State: when used as My Profile, parent passes initialEmployee and controls refresh
+  const [employee, setEmployee] = useState(initialEmployee || null);
+  const [loading, setLoading] = useState(!initialEmployee);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('personal');
 
@@ -69,14 +81,20 @@ const EmployeeDetail = () => {
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
-    fetchEmployee();
-  }, [id]);
+    if (initialEmployee) {
+      setEmployee(initialEmployee);
+      setLoading(false);
+      return;
+    }
+    if (paramsId) fetchEmployee();
+  }, [paramsId, initialEmployee]);
 
   const fetchEmployee = async () => {
+    if (!paramsId) return;
     try {
       setLoading(true);
       setError(null);
-      const data = await employeeService.getById(id);
+      const data = await employeeService.getById(paramsId);
       setEmployee(data);
     } catch (err) {
       setError(getErrorMessage(err));
@@ -85,12 +103,14 @@ const EmployeeDetail = () => {
     }
   };
 
+  const refreshEmployee = onRefresh || fetchEmployee;
+
   const handleVerify = async () => {
     try {
       setVerifying(true);
       await employeeService.verify(id);
       toast.success('Employee verified successfully');
-      fetchEmployee();
+      refreshEmployee();
       setVerifyModal(false);
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -168,7 +188,7 @@ const EmployeeDetail = () => {
     );
   }
 
-  const canManage = canManageEmployee(employee);
+  const canManage = isMyProfilePage ? false : canManageEmployee(employee);
   const isOwnProfile = user?.employee_id === employee.id;
 
   const tabs = [
@@ -203,8 +223,9 @@ const EmployeeDetail = () => {
       content: (
         <DocumentsTab
           employee={employee}
-          onUpdate={fetchEmployee}
-          canManage={canManage || isOwnProfile}
+          onUpdate={refreshEmployee}
+          canManage={canManage}
+          canUpload={canManage || isOwnProfile}
         />
       ),
     },
@@ -219,7 +240,7 @@ const EmployeeDetail = () => {
             id: 'account',
             label: 'Account',
             content: (
-              <AccountTab employee={employee} onUpdate={fetchEmployee} />
+              <AccountTab employee={employee} onUpdate={refreshEmployee} />
             ),
           },
         ]
@@ -229,12 +250,16 @@ const EmployeeDetail = () => {
   return (
     <div className='min-w-0 overflow-x-hidden'>
       <PageHeader
-        title='Employee Details'
-        breadcrumbs={[
-          { label: 'Dashboard', href: '/dashboard' },
-          { label: 'Employees', href: '/employees' },
-          { label: `${employee.first_name} ${employee.last_name}` },
-        ]}
+        title={isMyProfilePage ? 'My Profile' : 'Employee Details'}
+        breadcrumbs={
+          isMyProfilePage
+            ? [{ label: 'My Profile' }]
+            : [
+                { label: 'Dashboard', href: '/dashboard' },
+                { label: 'Employees', href: '/employees' },
+                { label: `${employee.first_name} ${employee.last_name}` },
+              ]
+        }
         actions={
           <div className='flex flex-wrap items-center gap-2 w-full sm:w-auto'>
             <Button
@@ -245,10 +270,10 @@ const EmployeeDetail = () => {
             >
               Download PDF
             </Button>
-            {canManage && (
+            {(canManage || isMyProfilePage) && id && (
               <Link to={`/employees/${id}/edit`}>
                 <Button variant='outline' size='sm' icon={PencilSquareIcon}>
-                  Edit
+                  {isMyProfilePage ? 'Edit Profile' : 'Edit'}
                 </Button>
               </Link>
             )}
@@ -265,7 +290,8 @@ const EmployeeDetail = () => {
               <Avatar
                 src={
                   employee.profile_picture
-                    ? `/storage/${employee.profile_picture}`
+                    ? getStorageUrl(employee.profile_picture) ||
+                      `/storage/${employee.profile_picture}`
                     : null
                 }
                 name={`${employee.first_name} ${employee.last_name}`}
@@ -455,7 +481,7 @@ const EmployeeDetail = () => {
         onClose={() => setReleaseModal(false)}
         employee={employee}
         onSuccess={() => {
-          fetchEmployee();
+          refreshEmployee();
           setReleaseModal(false);
         }}
       />
@@ -475,7 +501,7 @@ const EmployeeDetail = () => {
         onClose={() => setPromotionModal(false)}
         employee={employee}
         onSuccess={() => {
-          fetchEmployee();
+          refreshEmployee();
           setPromotionModal(false);
         }}
       />

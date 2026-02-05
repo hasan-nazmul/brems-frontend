@@ -20,11 +20,25 @@ import {
   ConfirmModal,
 } from '@/components/common';
 import { formatDate, getFullName, getErrorMessage } from '@/utils/helpers';
-import { getProposedChangesSections } from '@/utils/profileRequestChanges';
+import {
+  getProposedChangesSections,
+  getDocumentUpdateFallbackSection,
+} from '@/utils/profileRequestChanges';
 import toast from 'react-hot-toast';
 
-function ProposedChangesDisplay({ currentData, proposedChanges }) {
-  const sections = getProposedChangesSections(currentData, proposedChanges);
+function ProposedChangesDisplay({
+  currentData,
+  proposedChanges,
+  requestType,
+  details,
+}) {
+  let sections = getProposedChangesSections(currentData, proposedChanges);
+
+  // When request type is "Document Update" but no sections (e.g. legacy or details-only), show details as fallback
+  if (!sections.length && requestType === 'Document Update' && details) {
+    const fallback = getDocumentUpdateFallbackSection(details);
+    if (fallback) sections = [fallback];
+  }
 
   if (!sections.length) {
     return (
@@ -328,6 +342,8 @@ const ProfileRequestDetail = () => {
           <ProposedChangesDisplay
             currentData={request.current_data}
             proposedChanges={request.proposed_changes}
+            requestType={request.request_type}
+            details={request.details}
           />
         </Card>
       </div>

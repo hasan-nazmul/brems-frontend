@@ -28,6 +28,7 @@ import {
   ROLES,
 } from '@/utils/constants';
 import { getErrorMessage } from '@/utils/helpers';
+import { buildProposedChangesOnlyChanged } from '@/utils/profileRequestChanges';
 import toast from 'react-hot-toast';
 
 // Form sections
@@ -35,6 +36,7 @@ import BasicInfoSection from './forms/BasicInfoSection';
 import FamilySection from './forms/FamilySection';
 import AddressSection from './forms/AddressSection';
 import AcademicsSection from './forms/AcademicsSection';
+import DocumentsTab from './tabs/DocumentsTab';
 
 const PERSONAL_INFO_KEYS = [
   'first_name',
@@ -146,6 +148,34 @@ const EmployeeEdit = () => {
     }
   };
 
+  const refreshEmployeeDocuments = async () => {
+    if (!id) return;
+    try {
+      const data = await employeeService.getById(id);
+      setEmployee(data);
+      // Sync academics certificate_path into formData so uploads show without re-load
+      setFormData((prev) => {
+        const next = { ...prev };
+        if (data.academics && Array.isArray(prev.academics)) {
+          next.academics = prev.academics.map((p, i) => {
+            const fromApi =
+              data.academics[i] ?? data.academics.find((a) => a.id === p?.id);
+            const base = p && typeof p === 'object' ? p : {};
+            return fromApi
+              ? {
+                  ...base,
+                  id: fromApi.id,
+                  certificate_path:
+                    fromApi.certificate_path ?? base.certificate_path,
+                }
+              : { ...base };
+          });
+        }
+        return next;
+      });
+    } catch (_) {}
+  };
+
   const initializeFormData = (emp) => {
     // Initialize basic info
     const basicInfo = {
@@ -195,12 +225,14 @@ const EmployeeEdit = () => {
     const present = addresses.find((a) => a.type === 'present') || {};
     const permanent = addresses.find((a) => a.type === 'permanent') || {};
 
-    // Initialize academics
+    // Initialize academics (keep id and certificate_path for uploads)
     const academics = (emp.academics || []).map((a) => ({
+      id: a.id,
       exam_name: a.exam_name || '',
       institute: a.institute || '',
       passing_year: a.passing_year || '',
       result: a.result || '',
+      certificate_path: a.certificate_path || null,
     }));
 
     setFormData({
@@ -272,26 +304,26 @@ const EmployeeEdit = () => {
       setSaving(true);
 
       if (isVerifiedUser) {
-        // Verified users submit changes as a profile request for admin review
-        const personalInfo = {};
-        PERSONAL_INFO_KEYS.forEach((key) => {
-          if (formData[key] !== undefined && formData[key] !== '') {
-            personalInfo[key] = formData[key];
-          }
-        });
-        if (formData.dob && typeof formData.dob !== 'string') {
-          personalInfo.dob =
+        // Only include sections/fields that actually changed (avoids Father/Mother is_alive etc. when not toggled)
+        const proposedChanges = buildProposedChangesOnlyChanged(
+          employee,
+          formData
+        );
+        if (Object.keys(proposedChanges).length === 0) {
+          toast.error('No changes to submit. Edit at least one field.');
+          return;
+        }
+        // Normalize dob for any included personal_info
+        if (
+          proposedChanges.personal_info &&
+          formData.dob &&
+          typeof formData.dob !== 'string'
+        ) {
+          proposedChanges.personal_info.dob =
             formData.dob instanceof Date
               ? formData.dob.toISOString().slice(0, 10)
               : formData.dob;
         }
-
-        const proposedChanges = {
-          personal_info: personalInfo,
-          family: formData.family,
-          addresses: formData.addresses,
-          academics: formData.academics,
-        };
 
         await profileRequestService.submit({
           request_type: 'Profile Update',
@@ -377,9 +409,26 @@ const EmployeeEdit = () => {
         <AcademicsSection
           data={formData.academics}
           onChange={handleAcademicsChange}
+          employeeId={id}
+          onDocumentChange={refreshEmployeeDocuments}
         />
       ),
     },
+    ...(employee
+      ? [
+          {
+            id: 'documents',
+            label: 'Documents',
+            content: (
+              <DocumentsTab
+                employee={employee}
+                onUpdate={refreshEmployeeDocuments}
+                canManage={true}
+              />
+            ),
+          },
+        ]
+      : []),
   ];
 
   const pageTitle = isVerifiedUser ? 'Request profile update' : 'Edit Employee';

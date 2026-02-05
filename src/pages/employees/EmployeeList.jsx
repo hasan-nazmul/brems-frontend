@@ -31,7 +31,7 @@ import {
   STATUS_LABELS,
   EMPLOYEE_STATUS,
 } from '@/utils/constants';
-import { formatDate, getErrorMessage } from '@/utils/helpers';
+import { formatDate, getErrorMessage, getStorageUrl } from '@/utils/helpers';
 import toast from 'react-hot-toast';
 
 const EmployeeList = () => {
@@ -208,7 +208,8 @@ const EmployeeList = () => {
           <Avatar
             src={
               employee.profile_picture
-                ? `/storage/${employee.profile_picture}`
+                ? getStorageUrl(employee.profile_picture) ||
+                  `/storage/${employee.profile_picture}`
                 : null
             }
             name={`${employee.first_name} ${employee.last_name}`}
