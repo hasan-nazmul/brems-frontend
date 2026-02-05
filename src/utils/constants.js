@@ -1,5 +1,9 @@
-// API Base URL
-export const API_BASE_URL = 'https://brems-backend.onrender.com/api';
+// API Base URL: use VITE_API_URL from .env for local run (e.g. http://localhost:8000/api)
+export const API_BASE_URL =
+  import.meta.env.VITE_API_URL ?? 'https://brems-backend.onrender.com/api';
+
+// Backend origin for storage URLs (avoids /storage/... hitting the SPA router and 404)
+export const STORAGE_BASE_URL = API_BASE_URL.replace(/\/api\/?$/, '');
 
 // Application Info
 export const APP_NAME = 'BREMS';
@@ -154,7 +158,12 @@ export const FILE_LIMITS = {
   PHOTO_MAX_SIZE: 2 * 1024 * 1024, // 2MB
   DOCUMENT_MAX_SIZE: 5 * 1024 * 1024, // 5MB
   ALLOWED_IMAGE_TYPES: ['image/jpeg', 'image/jpg', 'image/png'],
-  ALLOWED_DOCUMENT_TYPES: ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png'],
+  ALLOWED_DOCUMENT_TYPES: [
+    'application/pdf',
+    'image/jpeg',
+    'image/jpg',
+    'image/png',
+  ],
 };
 
 // Date Formats
