@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import {
   PlusIcon,
@@ -79,7 +79,7 @@ const OfficeTreeItem = ({
 
         {/* Office Info */}
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Link
               to={`/offices/${office.id}`}
               className="font-medium text-gray-900 hover:text-primary-600"
@@ -156,6 +156,59 @@ const OfficeTreeItem = ({
   );
 };
 
+// Helper function to recursively filter tree by zone and search
+const filterTree = (offices, zone, search) => {
+  if (!offices || offices.length === 0) return [];
+
+  return offices
+    .map((office) => {
+      // Recursively filter children first
+      const filteredChildren = filterTree(office.children || [], zone, search);
+
+      // Check if this office matches the filters
+      const matchesZone = !zone || office.zone === zone;
+      const matchesSearch =
+        !search ||
+        office.name.toLowerCase().includes(search.toLowerCase()) ||
+        office.code.toLowerCase().includes(search.toLowerCase());
+
+      // Include this office if:
+      // 1. It matches both filters, OR
+      // 2. It has children that match (to preserve tree structure)
+      const hasMatchingChildren = filteredChildren.length > 0;
+      const matchesFilters = matchesZone && matchesSearch;
+
+      if (matchesFilters || hasMatchingChildren) {
+        return {
+          ...office,
+          children: filteredChildren,
+        };
+      }
+
+      return null;
+    })
+    .filter(Boolean); // Remove null entries
+};
+
+// Helper function to count offices by zone (including nested)
+const countOfficesByZone = (offices, zone) => {
+  let count = 0;
+
+  const countRecursive = (items) => {
+    for (const office of items) {
+      if (office.zone === zone) {
+        count++;
+      }
+      if (office.children && office.children.length > 0) {
+        countRecursive(office.children);
+      }
+    }
+  };
+
+  countRecursive(offices);
+  return count;
+};
+
 const OfficeList = () => {
   const { isSuperAdmin } = useAuth();
   const permissions = usePermissions();
@@ -195,38 +248,24 @@ const OfficeList = () => {
   const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
-    fetchOffices();
-    fetchOfficeTree();
+    fetchData();
 
     if (searchParams.get('action') === 'create') {
       setEditModal({ open: true, office: null });
     }
   }, [searchParams]);
 
-  // Refetch when zone filter changes
-  useEffect(() => {
-    fetchOfficeTree();
-  }, [zoneFilter]);
-
-  const fetchOffices = async () => {
-    try {
-      const params = {};
-      if (zoneFilter) params.zone = zoneFilter;
-      const data = await officeService.getAll(params);
-      setOffices(data);
-    } catch (err) {
-      console.error('Failed to fetch offices:', err);
-    }
-  };
-
-  const fetchOfficeTree = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
-      const params = {};
-      if (zoneFilter) params.zone = zoneFilter;
-      const data = await officeService.getTree(params);
-      setOfficeTree(data);
+      // Fetch both in parallel
+      const [officesData, treeData] = await Promise.all([
+        officeService.getAll(),
+        officeService.getTree(),
+      ]);
+      setOffices(officesData);
+      setOfficeTree(treeData);
     } catch (err) {
       setError(getErrorMessage(err));
     } finally {
@@ -279,8 +318,7 @@ const OfficeList = () => {
         toast.success('Office created successfully');
       }
       setEditModal({ open: false, office: null });
-      fetchOffices();
-      fetchOfficeTree();
+      fetchData();
     } catch (err) {
       toast.error(getErrorMessage(err));
       if (err.response?.data?.errors) {
@@ -297,8 +335,7 @@ const OfficeList = () => {
       await officeService.delete(deleteModal.office.id);
       toast.success('Office deleted successfully');
       setDeleteModal({ open: false, office: null });
-      fetchOffices();
-      fetchOfficeTree();
+      fetchData();
     } catch (err) {
       toast.error(getErrorMessage(err));
     } finally {
@@ -306,26 +343,31 @@ const OfficeList = () => {
     }
   };
 
-  const handleZoneFilterChange = (zone) => {
-    setZoneFilter(zone);
-  };
+  // Filter tree with memoization for better performance
+  const filteredTree = useMemo(() => {
+    return filterTree(officeTree, zoneFilter, search);
+  }, [officeTree, zoneFilter, search]);
 
-  const filteredTree = search
-    ? officeTree.filter(
-        (office) =>
-          office.name.toLowerCase().includes(search.toLowerCase()) ||
-          office.code.toLowerCase().includes(search.toLowerCase())
-      )
-    : officeTree;
+  // Filter flat list for list view
+  const filteredOffices = useMemo(() => {
+    return offices.filter((office) => {
+      const matchesSearch =
+        !search ||
+        office.name.toLowerCase().includes(search.toLowerCase()) ||
+        office.code.toLowerCase().includes(search.toLowerCase());
+      const matchesZone = !zoneFilter || office.zone === zoneFilter;
+      return matchesSearch && matchesZone;
+    });
+  }, [offices, zoneFilter, search]);
 
-  const filteredOffices = offices.filter((office) => {
-    const matchesSearch =
-      !search ||
-      office.name.toLowerCase().includes(search.toLowerCase()) ||
-      office.code.toLowerCase().includes(search.toLowerCase());
-    const matchesZone = !zoneFilter || office.zone === zoneFilter;
-    return matchesSearch && matchesZone;
-  });
+  // Zone counts from flat list (more accurate)
+  const zoneCounts = useMemo(() => {
+    const counts = {};
+    ZONE_OPTIONS.forEach((zone) => {
+      counts[zone.value] = offices.filter((o) => o.zone === zone.value).length;
+    });
+    return counts;
+  }, [offices]);
 
   return (
     <div>
@@ -359,7 +401,7 @@ const OfficeList = () => {
       <Card>
         {/* Toolbar */}
         <div className="p-4 border-b border-gray-200 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center gap-4">
             <SearchInput
               value={search}
               onChange={setSearch}
@@ -371,11 +413,8 @@ const OfficeList = () => {
               <FunnelIcon className="w-5 h-5 text-gray-400" />
               <Select
                 value={zoneFilter}
-                onChange={(e) => handleZoneFilterChange(e.target.value)}
-                options={[
-                  { value: '', label: 'All Zones' },
-                  ...ZONE_OPTIONS,
-                ]}
+                onChange={(e) => setZoneFilter(e.target.value)}
+                options={[{ value: '', label: 'All Zones' }, ...ZONE_OPTIONS]}
                 className="w-48"
               />
             </div>
@@ -403,38 +442,57 @@ const OfficeList = () => {
         {/* Zone Summary Stats */}
         <div className="p-4 bg-gray-50 border-b border-gray-200">
           <div className="flex flex-wrap gap-4">
-            {ZONE_OPTIONS.map((zone) => {
-              const count = offices.filter((o) => o.zone === zone.value).length;
-              return (
-                <button
-                  key={zone.value}
-                  onClick={() =>
-                    setZoneFilter(zoneFilter === zone.value ? '' : zone.value)
-                  }
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
-                    zoneFilter === zone.value
-                      ? 'border-primary-500 bg-primary-50'
-                      : 'border-gray-200 bg-white hover:bg-gray-50'
-                  }`}
-                >
-                  <Badge variant={getZoneColor(zone.value)} size="sm">
-                    {zone.label}
-                  </Badge>
-                  <span className="text-sm font-medium text-gray-700">
-                    {count} offices
-                  </span>
-                </button>
-              );
-            })}
-            {zoneFilter && (
+            {ZONE_OPTIONS.map((zone) => (
               <button
-                onClick={() => setZoneFilter('')}
+                key={zone.value}
+                onClick={() =>
+                  setZoneFilter(zoneFilter === zone.value ? '' : zone.value)
+                }
+                className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-colors ${
+                  zoneFilter === zone.value
+                    ? 'border-primary-500 bg-primary-50'
+                    : 'border-gray-200 bg-white hover:bg-gray-50'
+                }`}
+              >
+                <Badge variant={getZoneColor(zone.value)} size="sm">
+                  {zone.label}
+                </Badge>
+                <span className="text-sm font-medium text-gray-700">
+                  {zoneCounts[zone.value] || 0} offices
+                </span>
+              </button>
+            ))}
+            {(zoneFilter || search) && (
+              <button
+                onClick={() => {
+                  setZoneFilter('');
+                  setSearch('');
+                }}
                 className="text-sm text-primary-600 hover:text-primary-700 underline"
               >
-                Clear filter
+                Clear all filters
               </button>
             )}
           </div>
+          {/* Active filters indicator */}
+          {(zoneFilter || search) && (
+            <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+              <span>Showing:</span>
+              {zoneFilter && (
+                <Badge variant={getZoneColor(zoneFilter)} size="sm">
+                  {getZoneLabel(zoneFilter)}
+                </Badge>
+              )}
+              {search && (
+                <span className="px-2 py-1 bg-gray-200 rounded">
+                  Search: "{search}"
+                </span>
+              )}
+              <span className="text-gray-500">
+                ({viewMode === 'tree' ? filteredTree.length : filteredOffices.length} results)
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Content */}
@@ -443,7 +501,7 @@ const OfficeList = () => {
             <div className="animate-spin h-8 w-8 border-4 border-primary-600 border-t-transparent rounded-full mx-auto" />
             <p className="mt-4 text-gray-500">Loading offices...</p>
           </div>
-        ) : filteredTree.length === 0 ? (
+        ) : filteredTree.length === 0 && filteredOffices.length === 0 ? (
           <div className="p-8">
             <EmptyState
               icon={BuildingOfficeIcon}
@@ -454,10 +512,21 @@ const OfficeList = () => {
                   : 'Get started by creating your first office'
               }
               actionLabel={
-                permissions.canCreateOffice ? 'Add Office' : undefined
+                permissions.canCreateOffice
+                  ? search || zoneFilter
+                    ? 'Clear Filters'
+                    : 'Add Office'
+                  : undefined
               }
               onAction={
-                permissions.canCreateOffice ? () => handleEdit(null) : undefined
+                permissions.canCreateOffice
+                  ? search || zoneFilter
+                    ? () => {
+                        setZoneFilter('');
+                        setSearch('');
+                      }
+                    : () => handleEdit(null)
+                  : undefined
               }
             />
           </div>
@@ -609,10 +678,7 @@ const OfficeList = () => {
             label="Zone"
             value={formData.zone}
             onChange={(e) => setFormData({ ...formData, zone: e.target.value })}
-            options={[
-              { value: '', label: 'Select Zone' },
-              ...ZONE_OPTIONS,
-            ]}
+            options={[{ value: '', label: 'Select Zone' }, ...ZONE_OPTIONS]}
             error={formErrors.zone}
             helperText="If not selected, will inherit from parent office"
           />
@@ -638,7 +704,9 @@ const OfficeList = () => {
                 .filter((o) => o.id !== editModal.office?.id)
                 .map((o) => ({
                   value: o.id,
-                  label: `${o.name} (${o.code})${o.zone ? ` - ${getZoneLabel(o.zone)}` : ''}`,
+                  label: `${o.name} (${o.code})${
+                    o.zone ? ` - ${getZoneLabel(o.zone)}` : ''
+                  }`,
                 })),
             ]}
           />
