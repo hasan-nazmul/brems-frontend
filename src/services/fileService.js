@@ -1,6 +1,8 @@
 import api, { apiUpload } from './api';
 
 const fileService = {
+  // ... existing methods ...
+
   // Upload profile picture
   async uploadProfilePicture(employeeId, file, onProgress) {
     const formData = new FormData();
@@ -70,6 +72,20 @@ const fileService = {
   // Delete child birth certificate
   async deleteChildBirthCertificate(employeeId, familyMemberId) {
     const response = await api.delete(`/employees/${employeeId}/children/${familyMemberId}/certificate`);
+    return response.data;
+  },
+
+  // **NEW: Delete pending file**
+  async deletePendingFile(employeeId, path) {
+    const response = await api.delete(`/employees/${employeeId}/pending-files`, {
+      data: { path },
+    });
+    return response.data;
+  },
+
+  // **NEW: Get pending files list**
+  async getPendingFiles(employeeId) {
+    const response = await api.get(`/employees/${employeeId}/pending-files`);
     return response.data;
   },
 
