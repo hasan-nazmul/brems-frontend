@@ -1,14 +1,20 @@
 import { formatDate } from './helpers';
 
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const STORAGE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:8000';
 
 /**
- * Build the full URL for a storage file path
+ * Build the full URL for a storage file path (Cloudinary or local).
  */
 export function getStorageUrl(path) {
   if (!path) return null;
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
+  }
+  if (CLOUDINARY_CLOUD_NAME && path.includes('brems/')) {
+    const isRaw = path.toLowerCase().endsWith('.pdf') || path.includes('/raw/');
+    const resource = isRaw ? 'raw' : 'image';
+    return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/${resource}/upload/${path.replace(/^\//, '')}`;
   }
   return `${STORAGE_URL}/storage/${path}`;
 }
