@@ -50,8 +50,10 @@ const DocumentCard = ({
     );
   }
 
-  const isImage = /\.(jpg|jpeg|png|gif)$/i.test(path);
-  const fileUrl = getStorageUrl(path) || `/storage/${path}`;
+  const isPhoto = type === 'photo';
+  const fileUrl = isPhoto
+    ? (getStorageUrl(path) || `/storage/${path}`)
+    : (getStorageUrl(path, { forDocument: true }) || `/storage/${path}`);
 
   return (
     <>
@@ -89,7 +91,7 @@ const DocumentCard = ({
           </div>
         </div>
 
-        {isImage ? (
+        {isPhoto ? (
           <a href={fileUrl} target='_blank' rel='noopener noreferrer'>
             <img
               src={fileUrl}
@@ -98,15 +100,22 @@ const DocumentCard = ({
             />
           </a>
         ) : (
-          <a
-            href={fileUrl}
-            target='_blank'
-            rel='noopener noreferrer'
-            className='flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50'
-          >
-            <DocumentIcon className='w-8 h-8 text-gray-400' />
-            <span className='text-sm text-gray-600'>View Document</span>
-          </a>
+          <div className='space-y-2'>
+            <iframe
+              title={title}
+              src={fileUrl}
+              className='w-full h-48 rounded-lg border border-gray-200 bg-white'
+            />
+            <a
+              href={fileUrl}
+              target='_blank'
+              rel='noopener noreferrer'
+              className='flex items-center gap-2 p-3 bg-white rounded-lg border border-gray-200 hover:bg-gray-50'
+            >
+              <DocumentIcon className='w-8 h-8 text-gray-400' />
+              <span className='text-sm text-gray-600'>Open in new tab</span>
+            </a>
+          </div>
         )}
       </div>
 

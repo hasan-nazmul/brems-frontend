@@ -1,23 +1,49 @@
 import { format, parseISO, formatDistanceToNow } from 'date-fns';
 import { DATE_FORMATS, STORAGE_BASE_URL } from './constants';
 
+const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
 /**
  * Full URL for a storage file. Handles Cloudinary (public_id with brems/) and local backend /storage/ paths.
+ * @param {string} path - File path or Cloudinary public_id
+ * @param {{ forDocument?: boolean, resourceType?: 'image'|'raw' }} options - Use forDocument: true for NID/birth/certs (so PDFs get correct raw URL when path has no extension)
  */
-export const getStorageUrl = (path) => {
+export const getStorageUrl = (path, options = {}) => {
   if (!path) return null;
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
   const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
   if (cloudName && path.includes('brems/')) {
-    const isRaw = path.toLowerCase().endsWith('.pdf') || path.includes('/raw/');
-    const resource = isRaw ? 'raw' : 'image';
+    let resource = options.resourceType;
+    if (!resource) {
+      const ext = path.split('.').pop()?.toLowerCase() || '';
+      const hasImageExt = IMAGE_EXTENSIONS.includes(ext);
+      const explicitPdf = path.toLowerCase().endsWith('.pdf') || path.includes('/raw/');
+      if (explicitPdf || (options.forDocument && !hasImageExt)) {
+        resource = 'raw';
+      } else {
+        resource = 'image';
+      }
+    }
     const cleanPath = path.replace(/^\//, '');
     return `https://res.cloudinary.com/${cloudName}/${resource}/upload/${cleanPath}`;
   }
   const base = (STORAGE_BASE_URL || '').replace(/\/$/, '');
   return `${base}/storage/${path.replace(/^\//, '')}`;
+};
+
+/** True if path looks like an image (by extension). Cloudinary public_ids often have no extension. */
+export const isImageFile = (path) => {
+  if (!path) return false;
+  const ext = path.split('.').pop()?.toLowerCase();
+  return IMAGE_EXTENSIONS.includes(ext);
+};
+
+/** True if path looks like a PDF. */
+export const isPdfFile = (path) => {
+  if (!path) return false;
+  return path.toLowerCase().endsWith('.pdf');
 };
 
 /**

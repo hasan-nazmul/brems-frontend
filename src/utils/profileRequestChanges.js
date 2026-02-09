@@ -5,14 +5,21 @@ const STORAGE_URL = import.meta.env.VITE_API_URL?.replace('/api', '') || 'http:/
 
 /**
  * Build the full URL for a storage file path (Cloudinary or local).
+ * @param {string} path
+ * @param {{ forDocument?: boolean }} options - Use forDocument: true for NID/birth/certs so PDFs get raw URL when path has no extension
  */
-export function getStorageUrl(path) {
+export function getStorageUrl(path, options = {}) {
   if (!path) return null;
   if (path.startsWith('http://') || path.startsWith('https://')) {
     return path;
   }
   if (CLOUDINARY_CLOUD_NAME && path.includes('brems/')) {
-    const isRaw = path.toLowerCase().endsWith('.pdf') || path.includes('/raw/');
+    const ext = path.split('.').pop()?.toLowerCase() || '';
+    const hasImageExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+    const isRaw =
+      path.toLowerCase().endsWith('.pdf') ||
+      path.includes('/raw/') ||
+      (options.forDocument && !hasImageExt);
     const resource = isRaw ? 'raw' : 'image';
     return `https://res.cloudinary.com/${CLOUDINARY_CLOUD_NAME}/${resource}/upload/${path.replace(/^\//, '')}`;
   }
@@ -149,9 +156,9 @@ function diffDocumentUpdate(proposed) {
   
   // File preview - THE KEY PART
   if (doc.file_path) {
-    const fileUrl = getStorageUrl(doc.file_path);
+    const fileUrl = getStorageUrl(doc.file_path, { forDocument: true });
     const isImage = isImageFile(doc.file_path);
-    const currentFileUrl = doc.current_file_path ? getStorageUrl(doc.current_file_path) : null;
+    const currentFileUrl = doc.current_file_path ? getStorageUrl(doc.current_file_path, { forDocument: true }) : null;
     
     rows.push({
       label: 'File',
@@ -618,9 +625,9 @@ function diffPendingDocuments(proposed) {
   }
 
   return docs.map((doc, index) => {
-    const fileUrl = getStorageUrl(doc.path);
+    const fileUrl = getStorageUrl(doc.path, { forDocument: true });
     const isImage = isImageFile(doc.path);
-    const currentFileUrl = doc.current_file_path ? getStorageUrl(doc.current_file_path) : null;
+    const currentFileUrl = doc.current_file_path ? getStorageUrl(doc.current_file_path, { forDocument: true }) : null;
 
     return {
       label: doc.document_type || `Document ${index + 1}`,

@@ -66,7 +66,7 @@ const AcademicsTab = ({ employee }) => {
 
               {record.certificate_path && (
                 <a
-                  href={getStorageUrl(record.certificate_path) || '#'}
+                  href={getStorageUrl(record.certificate_path, { forDocument: true }) || '#'}
                   target='_blank'
                   rel='noopener noreferrer'
                   className='inline-flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700'

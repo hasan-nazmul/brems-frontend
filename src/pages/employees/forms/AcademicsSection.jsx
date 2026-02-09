@@ -187,7 +187,7 @@ const AcademicsSection = ({
                       <div className='flex items-center gap-2'>
                         <DocumentIcon className='w-5 h-5 text-gray-500' />
                         <a
-                          href={getStorageUrl(record.certificate_path)}
+                          href={getStorageUrl(record.certificate_path, { forDocument: true })}
                           target='_blank'
                           rel='noopener noreferrer'
                           className='text-sm text-primary-600 hover:underline'

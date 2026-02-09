@@ -129,16 +129,25 @@ const DocumentsSection = ({
                 alt='Pending upload'
                 className='w-20 h-20 object-cover rounded-lg border-2 border-amber-300'
               />
+            ) : pendingDoc.url ? (
+              <div className='space-y-2'>
+                <iframe
+                  title={label}
+                  src={pendingDoc.url}
+                  className='w-full h-48 rounded-lg border border-amber-200 bg-white'
+                />
+                <a
+                  href={pendingDoc.url}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='text-sm text-primary-600 hover:underline flex items-center gap-1'
+                >
+                  <DocumentIcon className='w-4 h-4' />
+                  Open in new tab
+                </a>
+              </div>
             ) : (
-              <a
-                href={pendingDoc.url}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='text-sm text-primary-600 hover:underline flex items-center gap-1'
-              >
-                <DocumentIcon className='w-4 h-4' />
-                View pending document
-              </a>
+              <span className='text-sm text-amber-700'>Pending file</span>
             )}
           </div>
         )}
@@ -153,17 +162,24 @@ const DocumentsSection = ({
                 className='w-24 h-24 object-cover rounded-lg border border-gray-200'
               />
             ) : (
-              <a
-                href={getStorageUrl(currentPath)}
-                target='_blank'
-                rel='noopener noreferrer'
-                className='inline-flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors'
-              >
-                <DocumentIcon className='w-5 h-5 text-gray-500' />
-                <span className='text-sm text-primary-600 hover:underline'>
-                  View current document
-                </span>
-              </a>
+              <div className='space-y-2'>
+                <iframe
+                  title={label}
+                  src={getStorageUrl(currentPath, { forDocument: true })}
+                  className='w-full h-64 rounded-lg border border-gray-200 bg-white'
+                />
+                <a
+                  href={getStorageUrl(currentPath, { forDocument: true })}
+                  target='_blank'
+                  rel='noopener noreferrer'
+                  className='inline-flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg border border-gray-200 hover:bg-gray-100 transition-colors'
+                >
+                  <DocumentIcon className='w-5 h-5 text-gray-500' />
+                  <span className='text-sm text-primary-600 hover:underline'>
+                    Open in new tab
+                  </span>
+                </a>
+              </div>
             )}
           </div>
         )}
