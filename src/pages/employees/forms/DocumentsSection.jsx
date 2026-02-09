@@ -119,25 +119,25 @@ const DocumentsSection = ({
           )}
         </div>
 
-        {/* Show pending document preview */}
+        {/* Show pending document preview - build URL from path with forDocument so PDFs use raw endpoint */}
         {hasPendingDoc && (
           <div className='mb-3 p-3 bg-amber-50 border border-amber-200 rounded-lg'>
             <p className='text-xs text-amber-700 mb-2'>New upload (pending approval):</p>
-            {pendingDoc.url && type === 'profile_picture' ? (
+            {type === 'profile_picture' && pendingDoc.path ? (
               <img
-                src={pendingDoc.url}
+                src={getStorageUrl(pendingDoc.path)}
                 alt='Pending upload'
                 className='w-20 h-20 object-cover rounded-lg border-2 border-amber-300'
               />
-            ) : pendingDoc.url ? (
+            ) : pendingDoc.path ? (
               <div className='space-y-2'>
                 <iframe
                   title={label}
-                  src={pendingDoc.url}
+                  src={getStorageUrl(pendingDoc.path, { forDocument: true })}
                   className='w-full h-48 rounded-lg border border-amber-200 bg-white'
                 />
                 <a
-                  href={pendingDoc.url}
+                  href={getStorageUrl(pendingDoc.path, { forDocument: true })}
                   target='_blank'
                   rel='noopener noreferrer'
                   className='text-sm text-primary-600 hover:underline flex items-center gap-1'
